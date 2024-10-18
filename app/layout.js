@@ -23,7 +23,6 @@ export default function RootLayout({ children }) {
       <body>
         <Header />
         <main>
-          <p>テストです！</p>
         {children}
         </main>
         
