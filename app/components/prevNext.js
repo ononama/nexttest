@@ -1,22 +1,31 @@
-import Link from 'next/link'
+"use client"; // クライアントコンポーネントとして明示
 
-const PrevNext =(props) => {
-    return (
-        <div className="pnWrapper">
-            {0 < props.prev.length && 
-                <Link href={`/blog/${props.prev[0].slug}`}>
-                    <img src="/images/arrow-left.svg" alt="arrow-left"/>
-                    <h3> {props.prev[0].frontmatter.title}</h3>
-                </Link>
-            }
-            {0 < props.next.length && 
-                <Link href={`/blog/${props.next[0].slug}`}>
-                    <h3>{props.next[0].frontmatter.title}</h3>
-                    <img src="/images/arrow-right.svg" alt="arrow-right"/>
-                </Link>
-            }
-        </div>
-    )
+import Link from 'next/link';
+
+export default function PrevNext({ previousPost, nextPost }) {
+  return (
+    <div className="pagination-links">
+      {/* 前の投稿へのリンク */}
+      {previousPost && (
+        <Link href={`/blog/${previousPost.id}`}>
+          ← {previousPost.title.rendered}
+        </Link>
+      )}
+
+      {/* 次の投稿へのリンク */}
+      {nextPost && (
+        <Link href={`/blog/${nextPost.id}`}>
+          {nextPost.title.rendered} →
+        </Link>
+      )}
+
+      <style jsx>{`
+        .pagination-links {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 20px;
+        }
+      `}</style>
+    </div>
+  );
 }
-
-export default PrevNext 

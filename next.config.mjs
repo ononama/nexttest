@@ -1,15 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // ⬇追加
+    output: 'export',  // 静的サイトのエクスポートを有効にする
+
+    // webpack 設定
     webpack: function (config) {
-        config.module.rules.push({
-            test: /\.md$/,
-            use: "raw-loader",
-        })
-        return config
+      config.module.rules.push({
+        test: /\.md$/,
+        use: "raw-loader",
+      });
+      return config;
     },
-    // ⬆追加
-}
-
-
-export default nextConfig;
+  };
+  
+  export default nextConfig;

@@ -1,61 +1,69 @@
 
-import Link from 'next/link'   // 追加
-import Image from 'next/image'  // 追加
-import fs from "fs"       // 追加
-import path from "path"  // 追加
-import matter from "gray-matter"   // 追加
 
-async function getAllBlogs() {
-    const files = fs.readdirSync(path.join("data"))
-    const blogs = files.map((fileName) => {
-      
-        const slug = fileName.replace(".md", "")    // 追加
-        const fileData = fs.readFileSync(
-            path.join("data", fileName),
-            "utf-8"
-        )
-        console.log(fileData)  // 削除
-        // ⬇追加
-        const { data } = matter(fileData) 
-        return {
-            frontmatter: data,
-            slug: slug,
-        }
-        // ⬆追加
-    })
-    const orderedBlogs = blogs.sort((a, b) => {
-      return b.frontmatter.id - a.frontmatter.id
-    })
-    // ⬇追加  
-    return{
-      blogs: orderedBlogs
+'use client';
+
+import { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
+import Pagination from '../components/pagination_wp'; // Paginationコンポーネント
+import CategoryList from '../components/categoryList'; // CategoryListコンポーネント
+
+export default function BlogPage() {
+  // ステート定義
+  const [posts, setPosts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 1;
+
+  // データをフェッチ
+  useEffect(() => {
+    async function fetchPosts() {
+      const res = await fetch('https://ononama.sakura.ne.jp/sample/wp_rest_api_test/wp-json/wp/v2/posts');
+      const data = await res.json();
+      setPosts(data);
     }
-    // ⬆追加
-}
+    fetchPosts();
+  }, []);
 
-const Blog = async() => {
+  // 総投稿数
+  const totalPosts = posts.length;
 
-    const { blogs } = await getAllBlogs() // 追加
-                     // 追加
-    return (
-      
-      <div>
-        <h1>ブログページ</h1>
-          {blogs.map((blog, index) => 
-              <div>
-                <div key={index}>
-                    <h2>{blog.frontmatter.title}</h2>
-                    <p>{blog.frontmatter.date}</p>
-                    <Link href={`/blog/${blog.slug}`}>Read More</Link>
-                </div>
-                <div>
-                  <Image src={blog.frontmatter.image} alt="card-image" height={300} width={1000} quality={90} priority={true} />
-                </div>
-              </div>
-          )}  
+  // ページネーションによる表示投稿
+  const paginatedPosts = useMemo(() => {
+    const start = (currentPage - 1) * postsPerPage;
+    const end = start + postsPerPage;
+    return posts.slice(start, end);
+  }, [posts, currentPage, postsPerPage]);
+
+  // ページ変更ハンドラー
+  const updatePage = (page) => {
+    setCurrentPage(page);
+  };
+
+  return (
+    <div>
+      <h1>ブログ一覧</h1>
+      <div className="catL">
+        <CategoryList />
       </div>
-
-    )
+      {/* 投稿のリストを表示 */}
+      {paginatedPosts.map((post) => (
+        <div key={post.id}>
+          <Link href={`/blog/${post.id}`}>
+            <p>{post.title.rendered}</p>
+          </Link>
+          {post.acf?.main && (
+            <div className="main">
+              <img src={post.acf.main} alt="Image" />
+            </div>
+          )}
+        </div>
+      ))}
+      {/* Paginationコンポーネント */}
+      <Pagination
+        totalPosts={totalPosts}
+        postsPerPage={postsPerPage}
+        currentPage={currentPage}
+        updatePage={updatePage}
+      />
+    </div>
+  );
 }
-
-export default Blog
